@@ -4,8 +4,8 @@
   数字一律 0–9（§4）。关于页没有阿拉伯文，显示英文那份。条目和占位符由 StringResourceParityTest 对。
 -->
 <resources>
-    <string name="app_name">Zeekr Shortcut</string>
-    <string name="app_name_full">Zeekr Shortcut</string>
+    <string name="app_name">tpl-zeekr</string>
+    <string name="app_name_full">tpl-zeekr (modified Zeekr Shortcut)</string>
     <string name="zeekr_lane_front">الأمام</string>
     <string name="zeekr_lane_back">الخلف</string>
     <string name="zeekr_lane_left">اليسار</string>
@@ -736,7 +736,7 @@
     <string name="nav_group_system">النظام</string>
     <string name="nav_settings">الإعدادات</string>
     <string name="nav_header_subtitle">كاميرا لوحة قيادة بالرؤية المحيطة</string>
-    <string name="nav_header_alt_name">极氪即刻</string>
+    <string name="nav_header_alt_name">Based on Zeekr Shortcut by dts88</string>
     <string name="lane_surround">الرؤية المحيطة</string>
     <string name="player_title">الفيديوهات</string>
     <string name="player_prev">السابق</string>
@@ -843,7 +843,7 @@
     <string name="set_plate_empty">غير محدد</string>
     <string name="msg_plate_cleaned">تم الحفظ بصيغة %1$s</string>
     <string name="msg_restart_required">يسري بعد إعادة تشغيل التطبيق</string>
-    <string name="main_title">Zeekr Shortcut</string>
+    <string name="main_title">tpl-zeekr</string>
     <string name="record_start">بدء التسجيل</string>
     <string name="record_stop">إيقاف التسجيل</string>
     <string name="record_preparing">جارٍ التحضير…</string>

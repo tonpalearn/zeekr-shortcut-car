@@ -28,7 +28,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.dts88.zeekrshortcut"
+        applicationId = "com.tonpalearn.tplzeekr"  // tpl-zeekr：自己的包名，可以和原版极氪即刻并排装
         minSdk = 28
         targetSdk = 36
         // 每次发布 tag 前同步更新这两个值：versionCode 决定能否覆盖安装，

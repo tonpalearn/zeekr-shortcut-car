@@ -7,6 +7,7 @@
     <cloud-backup>
         <!-- 开发者模式卸载重装后要关着：不让系统把它备份、再恢复回来（见 DeveloperMode） -->
         <exclude domain="sharedpref" path="developer_mode.xml"/>
+        <exclude domain="sharedpref" path="tpl_claude.xml"/>
         <!-- TODO: Use <include> and <exclude> to control what is backed up.
         <include .../>
         <exclude .../>
@@ -14,6 +15,7 @@
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="developer_mode.xml"/>
+        <exclude domain="sharedpref" path="tpl_claude.xml"/>
     </device-transfer>
     <!--
     <device-transfer>

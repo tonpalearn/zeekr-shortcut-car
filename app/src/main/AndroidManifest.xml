@@ -21,6 +21,22 @@
         tools:ignore="ScopedStorage" />
     <!-- 网络权限：检查更新访问 GitHub；「发送到手机」在局域网里临时提供一个文件 -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- tpl-zeekr: โหมด Claude เช็กว่ามีเน็ตไหม -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- tpl-zeekr: Android 11+ ต้องประกาศก่อนจึงจะเห็นบริการฟังเสียง/เสียงอ่านของระบบ -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <intent>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+        <!-- tpl-zeekr: ดูว่ามีแอป Claude ทางการติดตั้งไหม (ClaudeLauncher) -->
+        <package android:name="com.anthropic.claude" />
+    </queries>
 
     <!-- 检查更新：下载回来的 APK 要交给系统安装器 -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
@@ -162,6 +178,15 @@
             android:exported="false" />
 
         <!-- 关于与致谢：说明本应用两个功能来源及其许可证 -->
+        <!-- tpl-zeekr: โหมด Claude (singleTop: กดปุ่ม "ถาม Claude" ซ้ำ = ฟังรอบใหม่ในหน้าเดิม) -->
+        <activity
+            android:name=".claude.ClaudeActivity"
+            android:label="@string/claude_title"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.Cam"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false" />
+
         <activity
             android:name=".zeekr.AboutActivity"
             android:label="@string/about_title"

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- tpl-zeekr: ข้อความของโหมด Claude — ภาษาไทยทุกภาษาที่เลือก (ใช้คนเดียว) -->
+<resources>
+    <string name="claude_title" translatable="false">Claude</string>
+    <string name="claude_nav" translatable="false">Claude</string>
+    <string name="floating_action_ask_claude" translatable="false">ถาม Claude</string>
+    <string name="claude_hint" translatable="false">พิมพ์คำถาม หรือกดไมค์แล้วพูด</string>
+    <string name="claude_send" translatable="false">ส่ง</string>
+    <string name="claude_mic" translatable="false">พูด</string>
+    <string name="claude_settings" translatable="false">ตั้งค่า Claude</string>
+    <string name="claude_check" translatable="false">ตรวจความพร้อม</string>
+    <string name="claude_clear" translatable="false">เริ่มใหม่</string>
+    <string name="claude_stop_speaking" translatable="false">หยุดพูด</string>
+    <string name="claude_welcome" translatable="false">สวัสดีครับ กดปุ่มไมค์แล้วพูดได้เลย หรือพิมพ์ถามตอนจอดรถ\nครั้งแรกให้กดปุ่มตั้งค่า (มุมขวาบนสุด) ใส่กุญแจ Claude API ก่อน แล้วกดปุ่ม ✓ ตรวจความพร้อม</string>
+    <string name="claude_status_ready" translatable="false">พร้อม</string>
+    <string name="claude_status_listening" translatable="false">กำลังฟัง… พูดได้เลย</string>
+    <string name="claude_status_thinking" translatable="false">Claude กำลังคิด…</string>
+    <string name="claude_status_speaking" translatable="false">กำลังพูด…</string>
+    <string name="claude_status_moving" translatable="false">รถกำลังวิ่ง: ใช้เสียงเท่านั้น</string>
+    <string name="claude_need_key" translatable="false">ยังไม่ได้ใส่กุญแจ Claude API กดปุ่มตั้งค่า มุมขวาบนสุด เพื่อใส่ก่อน</string>
+    <string name="claude_no_stt" translatable="false">จอรถนี้ไม่มีระบบแปลงเสียงเป็นข้อความ ใช้พิมพ์แทนตอนจอดรถ</string>
+    <string name="claude_no_thai_tts" translatable="false">จอรถนี้ไม่มีเสียงอ่านภาษาไทย คำตอบจะแสดงเป็นข้อความอย่างเดียว</string>
+    <string name="claude_mic_denied" translatable="false">ยังไม่ได้อนุญาตให้ใช้ไมโครโฟน</string>
+    <string name="claude_heard_nothing" translatable="false">ไม่ได้ยินเสียง ลองกดไมค์แล้วพูดใหม่</string>
+    <string name="claude_you" translatable="false">คุณ</string>
+    <string name="claude_settings_key" translatable="false">กุญแจ Claude API (ขึ้นต้นด้วย sk-ant-)</string>
+    <string name="claude_settings_key_current" translatable="false">ตอนนี้: %1$s · เว้นว่างไว้ = ใช้กุญแจเดิม</string>
+    <string name="claude_settings_key_none" translatable="false">ยังไม่ได้ใส่กุญแจ</string>
+    <string name="claude_settings_model" translatable="false">รุ่น Claude</string>
+    <string name="claude_settings_speak" translatable="false">อ่านคำตอบออกเสียง</string>
+    <string name="claude_settings_note" translatable="false">กุญแจเก็บในเครื่องนี้เท่านั้น ไม่ถูกสำรองลง USB · ค่าใช้จ่ายคิดตามการใช้งานจริงในบัญชี Claude ของคุณ</string>
+    <string name="claude_settings_remove_key" translatable="false">ลบกุญแจ</string>
+    <string name="claude_save" translatable="false">บันทึก</string>
+    <string name="claude_cancel" translatable="false">ยกเลิก</string>
+    <string name="claude_close" translatable="false">ปิด</string>
+    <string name="claude_check_title" translatable="false">ตรวจความพร้อม</string>
+    <string name="claude_check_ping" translatable="false">ลองเรียก Claude</string>
+    <string name="claude_ping_prompt" translatable="false">ตอบสั้น ๆ คำเดียวว่า พร้อม</string>
+    <string name="claude_open_official" translatable="false">เปิดแอป Claude</string>
+    <string name="claude_settings_use_app" translatable="false">ปุ่ม “ถาม Claude” เปิดแอป Claude ทางการ</string>
+    <string name="claude_settings_use_app_note" translatable="false">ใช้บัญชี Pro/Max ที่ล็อกอินไว้ในแอป Claude ไม่ต้องใช้กุญแจ API · ต้องติดตั้งแอป Claude บนจอรถก่อน · ตอนนี้: %1$s</string>
+    <string name="claude_official_installed" translatable="false">พบแอป Claude แล้ว</string>
+    <string name="claude_official_missing" translatable="false">ยังไม่พบแอป Claude บนจอรถ</string>
+    <string name="claude_official_missing_msg" translatable="false">ตั้งให้ปุ่ม “ถาม Claude” เปิดแอป Claude ทางการไว้ แต่ยังไม่พบแอปนี้บนจอรถ จึงเปิดหน้านี้แทน · ติดตั้งแอป Claude แล้วล็อกอินด้วยบัญชีของคุณ หรือปิดตัวเลือกนี้ในตั้งค่า</string>
+</resources>

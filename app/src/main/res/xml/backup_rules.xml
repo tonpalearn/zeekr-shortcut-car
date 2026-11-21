@@ -6,6 +6,8 @@
    See https://developer.android.com/about/versions/12/backup-restore
 -->
 <full-backup-content>
+    <!-- tpl-zeekr: กุญแจ Claude API ห้ามออกจากเครื่อง -->
+    <exclude domain="sharedpref" path="tpl_claude.xml"/>
     <!-- 开发者模式卸载重装后要关着：不让系统把它备份、再恢复回来（见 DeveloperMode） -->
     <exclude domain="sharedpref" path="developer_mode.xml"/>
     <!--

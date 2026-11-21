@@ -75,7 +75,7 @@ public final class GithubReleases {
 
     private static final String TAG = "GithubReleases";
 
-    private static final String OWNER = "dts88";
+    private static final String OWNER = "tonpalearn";  // tpl-zeekr：只从自己的 fork 拿更新，不会装回原版
     private static final String REPO = "zeekr-shortcut-car";
     private static final String LIST_URL =
             "https://api.github.com/repos/" + OWNER + "/" + REPO + "/releases?per_page=20";

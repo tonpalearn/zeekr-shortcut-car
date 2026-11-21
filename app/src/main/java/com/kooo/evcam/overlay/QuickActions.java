@@ -59,6 +59,10 @@ public final class QuickActions {
             case PLAY_OUTSIDE_VOICE:
                 com.kooo.evcam.sound.OutsideVoice.play(context);
                 return;
+            case ASK_CLAUDE:
+                // tpl-zeekr: หน้า Claude ในแอป (ฟังทันที) หรือแอป Claude ทางการ — ตามที่ตั้งไว้ (ClaudeLauncher)
+                com.kooo.evcam.claude.ClaudeLauncher.ask(context);
+                return;
             case OPEN_APP:
             default:
                 openApp(context);

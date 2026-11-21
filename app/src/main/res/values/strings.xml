@@ -3,8 +3,8 @@
       应用名：装在车机上的这一份，本身就是车机版，桌面图标、抽屉标题、通知里不用再重复一遍。
       app_name_full 才带「（车机版）」—— 关于页、诊断报告这种要跟以后的 iOS 版区分开的地方用它。
     -->
-    <string name="app_name">极氪即刻</string>
-    <string name="app_name_full">极氪即刻（车机版）</string>
+    <string name="app_name">tpl-zeekr</string>
+    <string name="app_name_full">tpl-zeekr (modified Zeekr Shortcut)</string>
 
     <!-- 极氪合成流模式 -->
     <string name="zeekr_lane_front">前</string>
@@ -737,7 +737,7 @@
     <string name="nav_group_system">系统</string>
     <string name="nav_settings">设置</string>
     <string name="nav_header_subtitle">车机版环视记录仪</string>
-    <string name="nav_header_alt_name">Zeekr Shortcut</string>
+    <string name="nav_header_alt_name">Based on Zeekr Shortcut by dts88</string>
     <string name="lane_surround">环视</string>
     <string name="player_title">录像回放</string>
     <string name="player_prev">上一条</string>
@@ -843,7 +843,7 @@
     <string name="msg_restart_required">重启应用后生效</string>
 
     <!-- 主界面（统一骨架） -->
-    <string name="main_title">极氪即刻</string>
+    <string name="main_title">tpl-zeekr</string>
     <string name="record_start">开始录制</string>
     <string name="record_stop">停止录制</string>
     <string name="record_preparing">正在准备…</string>

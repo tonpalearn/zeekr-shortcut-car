@@ -23,6 +23,12 @@
             android:id="@+id/nav_photo_playback"
             android:icon="@drawable/ic_photo"
             android:title="@string/nav_photo_playback" />
+        <!-- tpl-zeekr: โหมด Claude (อีกหน้าหนึ่ง ไม่ค้างไฮไลต์) -->
+        <item
+            android:id="@+id/nav_claude"
+            android:checkable="false"
+            android:icon="@drawable/ic_claude"
+            android:title="@string/claude_nav" />
     </group>
 
     <item android:title="@string/nav_group_system">

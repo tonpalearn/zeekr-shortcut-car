@@ -37,7 +37,9 @@ public enum FloatingAction {
     /** 开 / 关模拟声浪（设置 → 系统「模拟声浪（试验性）」）：开车时一键关的地方。 */
     TOGGLE_DRIVE_SOUND("toggle_drive_sound"),
     /** 车外喇叭放一遍礼让语音（{@code sound.OutsideVoice}）。 */
-    PLAY_OUTSIDE_VOICE("play_outside_voice");
+    PLAY_OUTSIDE_VOICE("play_outside_voice"),
+    /** tpl-zeekr: เปิดหน้า Claude แล้วเริ่มฟังเสียงทันที ({@code claude.ClaudeActivity}). */
+    ASK_CLAUDE("ask_claude");
 
     public final String key;
 
@@ -66,6 +68,8 @@ public enum FloatingAction {
                 return com.kooo.evcam.R.string.floating_action_toggle_drive_sound;
             case PLAY_OUTSIDE_VOICE:
                 return com.kooo.evcam.R.string.floating_action_play_outside_voice;
+            case ASK_CLAUDE:
+                return com.kooo.evcam.R.string.floating_action_ask_claude;
             case OPEN_APP:
             default:
                 return com.kooo.evcam.R.string.floating_action_open_app;

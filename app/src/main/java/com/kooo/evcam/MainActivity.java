@@ -1145,6 +1145,9 @@ public class MainActivity extends AppCompatActivity implements com.kooo.evcam.se
             showPhotoPlaybackInterface();
         } else if (itemId == R.id.nav_about) {
             startActivity(new Intent(this, com.kooo.evcam.zeekr.AboutActivity.class));
+        } else if (itemId == R.id.nav_claude) {
+            // tpl-zeekr: โหมด Claude
+            startActivity(new Intent(this, com.kooo.evcam.claude.ClaudeActivity.class));
         }
     }
 
