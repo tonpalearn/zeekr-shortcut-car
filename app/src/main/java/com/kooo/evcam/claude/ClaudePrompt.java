@@ -28,13 +28,32 @@ public final class ClaudePrompt {
     }
 
     public static String system(Float speedKmh, String localTime) {
+        return system(speedKmh, localTime, null, false);
+    }
+
+    /**
+     * @param carStatus  "สภาพรถตอนนี้" หลายบรรทัด (ClaudeCarStatus) หรือ null
+     * @param carControl เปิดเครื่องมือ car_action ไหม
+     */
+    public static String system(Float speedKmh, String localTime, String carStatus, boolean carControl) {
         StringBuilder sb = new StringBuilder();
         sb.append("คุณคือ Claude ผู้ช่วยบนจอกลางรถยนต์ไฟฟ้า Zeekr 7X ของผู้ใช้ (แอป tpl-zeekr). ");
         sb.append("ผู้ใช้มักพูดถามด้วยเสียง และคำตอบของคุณจะถูกอ่านออกเสียง ");
         sb.append("จึงต้องตอบเป็นภาษาพูดธรรมดา ห้ามใช้ markdown ตาราง หัวข้อ สัญลักษณ์ * # หรืออีโมจิ ");
         sb.append("ตอบภาษาเดียวกับที่ผู้ใช้ถาม (ปกติคือภาษาไทย). ");
         sb.append("ถ้าไม่แน่ใจหรือไม่มีข้อมูลสด เช่น สภาพจราจรตอนนี้ ให้บอกตรง ๆ ว่าไม่รู้ อย่าเดา. ");
-        sb.append("ตอนนี้คุณยังสั่งงานรถ เปิดแอร์ หรือนำทางให้ไม่ได้ ถ้าถูกขอให้บอกสั้น ๆ ว่ายังทำไม่ได้. ");
+        if (carControl) {
+            sb.append("คุณสั่งงานรถได้ผ่านเครื่องมือ car_action เท่านั้น (แอร์ เบาะ เพลง โหมดขับ ฯลฯ ตามรายการในเครื่องมือ) ");
+            sb.append("ใช้เมื่อผู้ใช้ขอชัดเจนเท่านั้น ถ้าคำขอกำกวมให้ถามก่อนหนึ่งคำถาม. ");
+            sb.append("อุณหภูมิแอร์ตั้งเป็นตัวเลขตรง ๆ ไม่ได้ ปรับได้แค่ขึ้นหรือลงทีละขั้น และคุณไม่รู้ค่าที่ตั้งอยู่ ให้บอกผู้ใช้ตามจริง. ");
+            sb.append("รายงานผลตามที่เครื่องมือตอบกลับเท่านั้น ห้ามบอกว่าทำแล้วถ้าผลไม่ใช่สำเร็จ. ");
+            sb.append("ปลดล็อกรถ เปิดประตู และนำทาง ทำไม่ได้. ");
+        } else {
+            sb.append("ตอนนี้ผู้ใช้ปิดการสั่งงานรถไว้ คุณอ่านสภาพรถได้อย่างเดียว ถ้าถูกขอให้สั่งรถ ให้บอกว่าเปิดได้ที่ปุ่มตั้งค่าในหน้า Claude. ");
+        }
+        if (carStatus != null && !carStatus.isEmpty()) {
+            sb.append("\nสภาพรถตอนนี้ (อ่านจากรถจริง ใช้ตอบคำถามเรื่องรถได้):\n").append(carStatus).append("\n");
+        }
         if (localTime != null && !localTime.isEmpty()) {
             sb.append("เวลาตอนนี้ ").append(localTime).append(". ");
         }

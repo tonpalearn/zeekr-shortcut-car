@@ -42,4 +42,8 @@
     <string name="claude_official_installed" translatable="false">พบแอป Claude แล้ว</string>
     <string name="claude_official_missing" translatable="false">ยังไม่พบแอป Claude บนจอรถ</string>
     <string name="claude_official_missing_msg" translatable="false">ตั้งให้ปุ่ม “ถาม Claude” เปิดแอป Claude ทางการไว้ แต่ยังไม่พบแอปนี้บนจอรถ จึงเปิดหน้านี้แทน · ติดตั้งแอป Claude แล้วล็อกอินด้วยบัญชีของคุณ หรือปิดตัวเลือกนี้ในตั้งค่า</string>
+    <string name="claude_confirm_title" translatable="false">Claude ขอ: %1$s — กดยืนยันถ้าต้องการ</string>
+    <string name="claude_confirm_yes" translatable="false">ยืนยัน</string>
+    <string name="claude_settings_car_control" translatable="false">ให้ Claude สั่งรถได้</string>
+    <string name="claude_settings_car_control_note" translatable="false">แอร์ เบาะ เพลง โหมดขับ ทำได้ทันที · ล็อกรถ ปิดประตู พับกระจก โหมดเฝ้ารถ ต้องจอดและกดยืนยันบนจอเอง · ปิดสวิตช์แล้ว Claude อ่านสภาพรถได้อย่างเดียว</string>
 </resources>

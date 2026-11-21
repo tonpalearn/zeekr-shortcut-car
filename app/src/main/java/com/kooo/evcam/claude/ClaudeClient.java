@@ -64,13 +64,86 @@ public final class ClaudeClient {
     private ClaudeClient() {
     }
 
-    /** ส่งบทสนทนาทั้งหมด แล้วคืนข้อความตอบของ Claude */
+    /** ส่งบทสนทนาแบบข้อความล้วน แล้วคืนข้อความตอบของ Claude (ใช้กับปุ่มทดสอบ) */
     public static String ask(String apiKey, String model, String system, List<Turn> history, int maxTokens)
             throws Failure {
+        return parseReply(post(apiKey, buildBody(model, system, history, maxTokens)));
+    }
+
+    /** คำตอบหนึ่งรอบแบบเต็ม (มีบล็อก tool_use ได้) */
+    public static final class Response {
+        public final String stopReason;
+        public final JsonArray content;
+
+        public Response(String stopReason, JsonArray content) {
+            this.stopReason = stopReason;
+            this.content = content;
+        }
+
+        public boolean wantsTools() {
+            return "tool_use".equals(stopReason);
+        }
+
+        /** ข้อความทั้งหมดในรอบนี้ (ไม่รวม tool_use) */
+        public String text() {
+            StringBuilder sb = new StringBuilder();
+            for (JsonElement el : content) {
+                JsonObject b = el.getAsJsonObject();
+                if (b.has("type") && "text".equals(b.get("type").getAsString()) && b.has("text")) {
+                    if (sb.length() > 0) {
+                        sb.append('\n');
+                    }
+                    sb.append(b.get("text").getAsString());
+                }
+            }
+            return sb.toString().trim();
+        }
+    }
+
+    /** ส่งบทสนทนา (messages เป็นรูปแบบ API ตรง ๆ) พร้อมเครื่องมือ */
+    public static Response send(String apiKey, String model, String system, JsonArray messages, JsonArray tools,
+                                int maxTokens) throws Failure {
+        return parseResponse(post(apiKey, buildRequest(model, system, messages, tools, maxTokens)));
+    }
+
+    public static String buildRequest(String model, String system, JsonArray messages, JsonArray tools,
+                                      int maxTokens) {
+        JsonObject root = new JsonObject();
+        root.addProperty("model", model);
+        root.addProperty("max_tokens", maxTokens);
+        if (system != null && !system.isEmpty()) {
+            root.addProperty("system", system);
+        }
+        root.add("messages", messages);
+        if (tools != null && tools.size() > 0) {
+            root.add("tools", tools);
+        }
+        return root.toString();
+    }
+
+    public static Response parseResponse(String json) throws Failure {
+        try {
+            JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+            JsonArray content = root.has("content") ? root.getAsJsonArray("content") : new JsonArray();
+            String stop = root.has("stop_reason") && !root.get("stop_reason").isJsonNull()
+                    ? root.get("stop_reason").getAsString() : "";
+            Response r = new Response(stop, content);
+            if (!r.wantsTools() && r.text().isEmpty()) {
+                throw new Failure(200, "Claude ไม่ได้ตอบอะไรกลับมา", "empty content");
+            }
+            return r;
+        } catch (Failure f) {
+            throw f;
+        } catch (RuntimeException e) {
+            throw new Failure(200, "อ่านคำตอบของ Claude ไม่ได้", String.valueOf(e.getMessage()));
+        }
+    }
+
+    private static String post(String apiKey, String json) throws Failure {
         if (apiKey == null || apiKey.trim().isEmpty()) {
             throw new Failure(401, "ยังไม่ได้ใส่กุญแจ Claude API", "missing key");
         }
-        byte[] body = buildBody(model, system, history, maxTokens).getBytes(StandardCharsets.UTF_8);
+        byte[] body = json.getBytes(StandardCharsets.UTF_8);
         HttpURLConnection conn = null;
         try {
             conn = (HttpURLConnection) new URL(ENDPOINT).openConnection();
@@ -89,7 +162,7 @@ public final class ClaudeClient {
             InputStream in = code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();
             String text = in == null ? "" : readAll(in);
             if (code >= 200 && code < 300) {
-                return parseReply(text);
+                return text;
             }
             throw parseError(code, text);
         } catch (Failure f) {

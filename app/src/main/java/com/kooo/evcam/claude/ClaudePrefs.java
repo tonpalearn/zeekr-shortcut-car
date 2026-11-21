@@ -24,6 +24,7 @@ public final class ClaudePrefs {
     private static final String KEY_MODEL = "model";
     private static final String KEY_SPEAK = "speak";
     private static final String KEY_USE_OFFICIAL_APP = "use_official_app";
+    private static final String KEY_CAR_CONTROL = "car_control";
 
     /** รุ่นที่เลือกได้: ตัวแรกคือค่าเริ่มต้น */
     public static final String[] MODELS = {"claude-sonnet-5-5", "claude-haiku-5-5", "claude-opus-5-5"};
@@ -90,6 +91,15 @@ public final class ClaudePrefs {
 
     public void setUseOfficialApp(boolean use) {
         prefs.edit().putBoolean(KEY_USE_OFFICIAL_APP, use).apply();
+    }
+
+    /** เฟส 2: ให้ Claude สั่งรถได้ (ค่าเริ่มต้นเปิด) — ปิดแล้วเหลืออ่านสภาพรถอย่างเดียว */
+    public boolean carControl() {
+        return prefs.getBoolean(KEY_CAR_CONTROL, true);
+    }
+
+    public void setCarControl(boolean on) {
+        prefs.edit().putBoolean(KEY_CAR_CONTROL, on).apply();
     }
 
     /** โชว์กุญแจแบบปิดไว้ เหลือ 4 ตัวท้าย */

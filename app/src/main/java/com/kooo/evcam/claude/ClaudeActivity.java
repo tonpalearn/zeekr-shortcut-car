@@ -72,14 +72,18 @@ public class ClaudeActivity extends AppCompatActivity implements TextToSpeech.On
     private static final String TAG = "ClaudeActivity";
     private static final int REQ_MIC = 4101;
     private static final int REQ_SPEECH_ACTIVITY = 4102;
-    private static final int MAX_TURNS = 24;
     private static final long SPEED_POLL_MS = 1000;
+    private static final String TELEMETRY_USER = "tpl-claude";
 
     private static final Locale THAI = new Locale("th", "TH");
 
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
-    private final List<ClaudeClient.Turn> history = Collections.synchronizedList(new ArrayList<>());
+    /** บทสนทนาแบบมีเครื่องมือ (เฟส 2) */
+    private final ClaudeConversation conversation = new ClaudeConversation();
+    /** สิ่งที่ผู้ใช้กดยืนยันบนจอไปแล้ว — แนบไปกับคำถามถัดไปให้ Claude รู้ (เธรดหลักเท่านั้น) */
+    private final List<String> pendingNotes = new ArrayList<>();
+    private ClaudeCarTools carTools;
 
     private ClaudePrefs prefs;
 
@@ -121,6 +125,7 @@ public class ClaudeActivity extends AppCompatActivity implements TextToSpeech.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_claude);
         prefs = new ClaudePrefs(this);
+        carTools = new ClaudeCarTools(this, main, prefs, this::addConfirmCard);
 
         scroll = findViewById(R.id.claude_scroll);
         messages = findViewById(R.id.claude_messages);
@@ -143,8 +148,13 @@ public class ClaudeActivity extends AppCompatActivity implements TextToSpeech.On
         });
         send.setOnClickListener(v -> sendTyped());
         mic.setOnClickListener(v -> onMicPressed());
+        // บรรทัดเดียวในเชิงข้อมูล (Enter = ส่ง) แต่ตัดคำขึ้นบรรทัดให้เห็นได้ถึง 3 บรรทัด
+        input.setHorizontallyScrolling(false);
+        input.setMaxLines(3);
         input.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_SEND) {
+            if (actionId == EditorInfo.IME_ACTION_SEND
+                    || (event != null && event.getKeyCode() == android.view.KeyEvent.KEYCODE_ENTER
+                    && event.getAction() == android.view.KeyEvent.ACTION_DOWN)) {
                 sendTyped();
                 return true;
             }
@@ -183,6 +193,12 @@ public class ClaudeActivity extends AppCompatActivity implements TextToSpeech.On
                 ClaudeLauncher.officialInstalled(this) ? View.VISIBLE : View.GONE);
         main.removeCallbacks(speedPoll);
         main.post(speedPoll);
+        // เฟส 2: ขอให้ telemetry ของ dts88 อ่านค่าลอยตัว (แบต ระยะวิ่ง อุณหภูมิ) ระหว่างเปิดหน้านี้
+        try {
+            com.kooo.evcam.telemetry.Telemetry.get().acquire(this, TELEMETRY_USER);
+        } catch (RuntimeException e) {
+            AppLog.w(TAG, "telemetry acquire failed", e);
+        }
         if (pendingListen) {
             pendingListen = false;
             main.postDelayed(this::startListening, 400);
@@ -194,6 +210,11 @@ public class ClaudeActivity extends AppCompatActivity implements TextToSpeech.On
         super.onPause();
         main.removeCallbacks(speedPoll);
         stopListening();
+        try {
+            com.kooo.evcam.telemetry.Telemetry.get().release(TELEMETRY_USER);
+        } catch (RuntimeException e) {
+            AppLog.w(TAG, "telemetry release failed", e);
+        }
     }
 
     @Override
@@ -266,23 +287,40 @@ public class ClaudeActivity extends AppCompatActivity implements TextToSpeech.On
             return;
         }
         addBubble(true, question, false);
-        history.add(new ClaudeClient.Turn("user", question));
-        trimHistory();
         busy = true;
         setStatus(getString(R.string.claude_status_thinking));
         mic.setEnabled(false);
         send.setEnabled(false);
 
-        final List<ClaudeClient.Turn> snapshot = new ArrayList<>(history);
+        // แนบสิ่งที่ผู้ใช้เพิ่งกดยืนยันบนจอ ให้ Claude รู้ว่าเกิดอะไรขึ้นแล้ว
+        StringBuilder q = new StringBuilder();
+        if (!pendingNotes.isEmpty()) {
+            q.append("(หมายเหตุจากแอป: ").append(android.text.TextUtils.join(" · ", pendingNotes)).append(")\n");
+            pendingNotes.clear();
+        }
+        q.append(question);
+        final String userText = q.toString();
         final String key = prefs.apiKey();
         final String model = prefs.model();
+        final boolean control = prefs.carControl();
         final Float speed = CarSpeed.kmh();
-        final String system = ClaudePrompt.system(speed, now());
+        final String system = ClaudePrompt.system(speed, now(), ClaudeCarStatus.describe(this), control);
         final int maxTokens = ClaudePrompt.isMoving(speed)
                 ? ClaudePrompt.MAX_TOKENS_MOVING : ClaudePrompt.MAX_TOKENS_PARKED;
+        final com.google.gson.JsonArray tools = new com.google.gson.JsonArray();
+        if (control) {
+            tools.add(ClaudeCarPolicy.toolDefinition());
+        }
         worker.execute(() -> {
             try {
-                String reply = ClaudeClient.ask(key, model, system, snapshot, maxTokens);
+                String reply = conversation.ask(userText,
+                        msgs -> ClaudeClient.send(key, model, system, msgs, tools, maxTokens),
+                        carTools,
+                        text -> main.post(() -> {
+                            if (!isFinishing() && !isDestroyed()) {
+                                addBubble(false, text, false);
+                            }
+                        }));
                 main.post(() -> onReply(reply));
             } catch (ClaudeClient.Failure f) {
                 AppLog.w(TAG, "Claude failed: " + f.getMessage());
@@ -291,6 +329,7 @@ public class ClaudeActivity extends AppCompatActivity implements TextToSpeech.On
         });
     }
 
+    /** รอบนี้จบ: ข้อความขึ้นจอไปแล้วระหว่างทาง เหลืออ่านออกเสียงคำตอบสุดท้าย */
     private void onReply(String reply) {
         if (isFinishing() || isDestroyed()) {
             return;
@@ -298,8 +337,6 @@ public class ClaudeActivity extends AppCompatActivity implements TextToSpeech.On
         busy = false;
         mic.setEnabled(true);
         send.setEnabled(true);
-        history.add(new ClaudeClient.Turn("assistant", reply));
-        addBubble(false, reply, false);
         if (!speak(reply)) {
             setStatus(readyText());
         }
@@ -312,27 +349,9 @@ public class ClaudeActivity extends AppCompatActivity implements TextToSpeech.On
         busy = false;
         mic.setEnabled(true);
         send.setEnabled(true);
-        // ถอนคำถามที่ไม่ได้คำตอบออก ให้บทสนทนาสลับ user/assistant ถูกเสมอ
-        synchronized (history) {
-            if (!history.isEmpty() && "user".equals(history.get(history.size() - 1).role)) {
-                history.remove(history.size() - 1);
-            }
-        }
         addBubble(false, "⚠ " + f.thaiMessage, true);
         if (!speak(f.thaiMessage)) {
             setStatus(readyText());
-        }
-    }
-
-    private void trimHistory() {
-        synchronized (history) {
-            while (history.size() > MAX_TURNS) {
-                history.remove(0);
-            }
-            // ข้อความแรกต้องเป็น user เสมอ (กติกาของ API)
-            while (!history.isEmpty() && !"user".equals(history.get(0).role)) {
-                history.remove(0);
-            }
         }
     }
 
@@ -340,13 +359,88 @@ public class ClaudeActivity extends AppCompatActivity implements TextToSpeech.On
         if (busy) {
             return;
         }
-        history.clear();
+        conversation.clear();
+        pendingNotes.clear();
         messages.removeAllViews();
         if (tts != null) {
             tts.stop();
         }
         addBubble(false, getString(R.string.claude_welcome), true);
         setStatus(readyText());
+    }
+
+    // ------------------------------------------------------------------ การ์ดยืนยันคำสั่งรถ (เฟส 2)
+
+    /** Claude ขอคำสั่งระดับยืนยัน: ขึ้นการ์ดให้ผู้ใช้กดเอง (เธรดหลัก) */
+    private void addConfirmCard(ClaudeCarPolicy.Entry entry, int steps) {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(16), dp(14), dp(16), dp(14));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setCornerRadius(dp(14));
+        bg.setColor(ContextCompat.getColor(this, R.color.surface));
+        bg.setStroke(dp(2), ContextCompat.getColor(this, R.color.energy));
+        card.setBackground(bg);
+        LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        cardLp.topMargin = dp(10);
+        card.setLayoutParams(cardLp);
+
+        TextView title = new TextView(this);
+        title.setText(getString(R.string.claude_confirm_title, entry.thai));
+        title.setTextAppearance(R.style.TextAppearance_Cam_Row);
+        title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+        card.addView(title);
+
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(0, dp(12), 0, 0);
+        MaterialButton yes = new MaterialButton(this);
+        yes.setText(R.string.claude_confirm_yes);
+        MaterialButton no = new MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
+        no.setText(R.string.claude_cancel);
+        LinearLayout.LayoutParams noLp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        noLp.leftMargin = dp(12);
+        row.addView(yes);
+        row.addView(no, noLp);
+        card.addView(row);
+
+        yes.setOnClickListener(v -> {
+            yes.setEnabled(false);
+            no.setEnabled(false);
+            // ตรวจซ้ำตอนกด: ต้องจอดนิ่งและอ่านความเร็วได้
+            Float kmh = CarSpeed.kmh();
+            if (kmh == null || ClaudePrompt.isMoving(kmh)) {
+                String msg = kmh == null
+                        ? "ยังไม่ได้ทำ: อ่านความเร็วรถไม่ได้ จึงไม่แน่ใจว่าจอดอยู่"
+                        : "ยังไม่ได้ทำ: รถกำลังวิ่ง";
+                finishCard(title, entry, msg);
+                return;
+            }
+            setStatus(getString(R.string.claude_status_thinking));
+            com.kooo.evcam.button.ClaudeCarBridge.perform(this, entry.key, steps,
+                    r -> finishCard(title, entry, ClaudeCarTools.resultText(r)));
+        });
+        no.setOnClickListener(v -> {
+            yes.setEnabled(false);
+            no.setEnabled(false);
+            finishCard(title, entry, "ยกเลิกแล้ว");
+        });
+
+        messages.addView(card);
+        scroll.post(() -> scroll.fullScroll(View.FOCUS_DOWN));
+    }
+
+    private void finishCard(TextView title, ClaudeCarPolicy.Entry entry, String result) {
+        title.setText(entry.thai + " — " + result);
+        pendingNotes.add("ผู้ใช้ตอบการ์ดยืนยัน \"" + entry.thai + "\" ผล: " + result);
+        if (!speak(entry.thai + " " + result)) {
+            setStatus(readyText());
+        }
     }
 
     private String readyText() {
@@ -667,6 +761,15 @@ public class ClaudeActivity extends AppCompatActivity implements TextToSpeech.On
 
         box.addView(small(getString(R.string.claude_settings_note)));
 
+        SwitchCompat carSwitch = new SwitchCompat(this);
+        carSwitch.setText(R.string.claude_settings_car_control);
+        carSwitch.setTextAppearance(R.style.TextAppearance_Cam_Body);
+        carSwitch.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+        carSwitch.setChecked(prefs.carControl());
+        carSwitch.setPadding(0, dp(16), 0, dp(4));
+        box.addView(carSwitch);
+        box.addView(small(getString(R.string.claude_settings_car_control_note)));
+
 
         ScrollView sv = new ScrollView(this);
         sv.addView(box);
@@ -686,6 +789,7 @@ public class ClaudeActivity extends AppCompatActivity implements TextToSpeech.On
                     }
                     prefs.setSpeak(speakSwitch.isChecked());
                     prefs.setUseOfficialApp(useApp.isChecked());
+                    prefs.setCarControl(carSwitch.isChecked());
                     if (!prefs.speak() && tts != null) {
                         tts.stop();
                     }
@@ -719,6 +823,11 @@ public class ClaudeActivity extends AppCompatActivity implements TextToSpeech.On
         sb.append(line(official != null, "แอป Claude ทางการ",
                 (official != null ? "ติดตั้งแล้ว v" + official : "ไม่พบ (" + ClaudeLauncher.OFFICIAL_PACKAGE + ")")
                         + (prefs.useOfficialApp() ? " · ปุ่มถาม Claude ตั้งให้เปิดแอปนี้" : "")));
+        String carStatus = ClaudeCarStatus.describe(this);
+        int carLines = carStatus.isEmpty() ? 0 : carStatus.split("\n").length;
+        sb.append(line(carLines > 0, "สภาพรถที่ส่งให้ Claude", carLines > 0 ? carLines + " รายการ" : "อ่านไม่ได้"));
+        sb.append(line(prefs.carControl(), "ให้ Claude สั่งรถ",
+                prefs.carControl() ? "เปิด (" + ClaudeCarPolicy.allowed().size() + " คำสั่งในรายการอนุญาต)" : "ปิด"));
         sb.append(line(speed != null, "ความเร็วรถ",
                 speed == null ? "อ่านไม่ได้ (ไม่ได้อยู่บนรถ?)" : String.format(Locale.US, "%.0f กม./ชม.", speed)));
 

@@ -133,7 +133,7 @@
             android:background="@color/input_background"
             android:hint="@string/claude_hint"
             android:imeOptions="actionSend|flagNoExtractUi|flagNoFullscreen"
-            android:inputType="textMultiLine|textCapSentences"
+            android:inputType="text|textCapSentences"
             android:maxLines="3"
             android:minHeight="56dp"
             android:paddingStart="16dp"
